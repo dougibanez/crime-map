@@ -37,6 +37,8 @@ export default function CrimeHeatMap({ crimeType, timeFilter, selectedCommune, o
         center: [-33.447, -70.586],
         zoom: 13,
         zoomControl: false,
+        // Prevent issues with mobile pinch zoom
+        tap: false,
       });
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -48,6 +50,13 @@ export default function CrimeHeatMap({ crimeType, timeFilter, selectedCommune, o
       }).addTo(map);
 
       leafletMapRef.current = map;
+
+      // ResizeObserver: invalidate map size whenever the container resizes
+      // (fixes zoom bugs on mobile Safari and layout transitions)
+      const ro = new ResizeObserver(() => {
+        map.invalidateSize({ animate: false });
+      });
+      ro.observe(mapRef.current);
 
       // Draw commune polygons
       Object.entries(communePolygons).forEach(([id, coords]) => {
@@ -62,17 +71,9 @@ export default function CrimeHeatMap({ crimeType, timeFilter, selectedCommune, o
           fillOpacity: 0.08,
         });
 
-        poly.on('click', () => {
-          onSelectCommune(id);
-        });
-
-        poly.on('mouseover', function () {
-          poly.setStyle({ fillOpacity: 0.22, weight: 3 });
-        });
-
-        poly.on('mouseout', function () {
-          poly.setStyle({ fillOpacity: 0.08, weight: 2 });
-        });
+        poly.on('click', () => { onSelectCommune(id); });
+        poly.on('mouseover', () => { poly.setStyle({ fillOpacity: 0.22, weight: 3 }); });
+        poly.on('mouseout',  () => { poly.setStyle({ fillOpacity: 0.08, weight: 2 }); });
 
         const tooltipContent = `
           <div style="font-weight:700;font-size:13px;color:#f9fafb">${commune.name}</div>
@@ -92,6 +93,8 @@ export default function CrimeHeatMap({ crimeType, timeFilter, selectedCommune, o
       });
 
       if (isMounted) setIsLoaded(true);
+
+      return () => ro.disconnect();
     };
 
     initMap();
@@ -103,7 +106,6 @@ export default function CrimeHeatMap({ crimeType, timeFilter, selectedCommune, o
         leafletMapRef.current = null;
       }
     };
-    // onSelectCommune is stable (from useState setter passed down)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -128,7 +130,6 @@ export default function CrimeHeatMap({ crimeType, timeFilter, selectedCommune, o
       });
 
       const points: [number, number, number][] = filtered.map(p => [p.lat, p.lng, p.intensity]);
-
       if (points.length === 0) return;
 
       const heat = L.heatLayer(points, {

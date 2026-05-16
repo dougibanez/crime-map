@@ -4,6 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Mapa de Calor — Portonazos y Encerronas RM",
   description: "Mapa interactivo de portonazos y encerronas en la Región Metropolitana de Santiago. Datos PDI y Fiscalía Oriente 2024-2025.",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
 };
 
 export default function RootLayout({

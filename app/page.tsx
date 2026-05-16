@@ -27,18 +27,38 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-gray-950">
-      {/* Sidebar */}
-      <aside
-        className={`flex-shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col overflow-hidden z-10 transition-all duration-300 ${
-          sidebarOpen ? 'w-[280px]' : 'w-0 border-r-0'
-        }`}
-      >
-        <CommunePanel selectedId={selectedCommune} onSelect={setSelectedCommune} />
-      </aside>
+    // dvh = dynamic viewport height, handles mobile browser chrome correctly
+    <div className="flex w-screen overflow-hidden bg-gray-950" style={{ height: '100dvh' }}>
 
-      {/* Map area */}
-      <main className="relative flex-1 overflow-hidden">
+      {/* Sidebar — fixed panel on desktop, overlay on mobile */}
+      <>
+        {/* Mobile overlay backdrop */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-20 bg-black/50 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        <aside
+          className={`
+            fixed md:relative inset-y-0 left-0 z-30 md:z-10
+            w-[280px] flex-shrink-0
+            bg-gray-900 border-r border-gray-800
+            flex flex-col overflow-hidden
+            transition-transform duration-300 ease-in-out
+            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:-translate-x-full'}
+            md:transition-all md:duration-300
+            ${sidebarOpen ? 'md:w-[280px]' : 'md:w-0 md:border-r-0'}
+          `}
+          style={{ height: '100dvh' }}
+        >
+          <CommunePanel selectedId={selectedCommune} onSelect={setSelectedCommune} />
+        </aside>
+      </>
+
+      {/* Map area — always full remaining width */}
+      <main className="relative flex-1 overflow-hidden min-w-0">
         <CrimeHeatMap
           crimeType={crimeType}
           timeFilter={timeFilter}
