@@ -1,10 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Mapa de Calor — Portonazos y Encerronas RM",
   description: "Mapa interactivo de portonazos y encerronas en la Región Metropolitana de Santiago. Datos PDI y Fiscalía Oriente 2024-2025.",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+};
+
+// Viewport export separado — única forma correcta en Next.js 14 de bloquear zoom
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
