@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import CommunePanel from '@/components/CommunePanel';
 import FilterBar from '@/components/FilterBar';
-import Legend from '@/components/Legend';
 import SourcesFooter from '@/components/SourcesFooter';
 import { type CrimeType, type TimeFilter } from '@/lib/crimeData';
 
@@ -26,16 +25,14 @@ export default function Home() {
   const [selectedCommune, setSelectedCommune] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Abre por defecto en desktop
   useEffect(() => {
     if (window.innerWidth >= 768) setSidebarOpen(true);
   }, []);
 
   return (
-    // El mapa siempre ocupa toda la pantalla
     <div className="fixed inset-0 bg-gray-950">
 
-      {/* Mapa: full screen siempre */}
+      {/* Mapa full screen */}
       <CrimeHeatMap
         crimeType={crimeType}
         timeFilter={timeFilter}
@@ -43,7 +40,7 @@ export default function Home() {
         onSelectCommune={setSelectedCommune}
       />
 
-      {/* Filtros centrados arriba */}
+      {/* Filtros */}
       <div className="absolute inset-x-0 top-0 pointer-events-none" style={{ zIndex: 400 }}>
         <FilterBar
           crimeType={crimeType}
@@ -53,27 +50,21 @@ export default function Home() {
         />
       </div>
 
-      {/* Botón toggle — siempre visible, esquina superior izquierda */}
-      <button
-        onClick={() => setSidebarOpen(o => !o)}
-        style={{ zIndex: 1000 }}
-        className="absolute top-4 left-4 bg-gray-900 border border-gray-600 rounded-lg p-2.5 text-gray-300 hover:text-white hover:border-gray-400 transition-all shadow-xl"
-        aria-label={sidebarOpen ? 'Ocultar resumen' : 'Mostrar resumen'}
-      >
-        {sidebarOpen ? (
-          // X para cerrar
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : (
-          // Hamburger para abrir
+      {/* Botón hamburger — solo visible cuando sidebar está CERRADO */}
+      {!sidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          style={{ zIndex: 1000 }}
+          className="absolute top-4 left-4 bg-gray-900 border border-gray-600 rounded-lg p-2.5 text-gray-300 hover:text-white hover:border-gray-400 transition-all shadow-xl"
+          aria-label="Mostrar resumen"
+        >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
-        )}
-      </button>
+        </button>
+      )}
 
-      {/* Backdrop: aparece detrás del sidebar al abrirse */}
+      {/* Backdrop mobile */}
       {sidebarOpen && (
         <div
           className="absolute inset-0 bg-black/50 md:hidden"
@@ -82,7 +73,7 @@ export default function Home() {
         />
       )}
 
-      {/* Sidebar: overlay fijo desde la izquierda */}
+      {/* Sidebar — la X queda dentro del panel */}
       <aside
         style={{
           zIndex: 900,
@@ -95,14 +86,16 @@ export default function Home() {
         }}
         className="absolute bg-gray-900 border-r border-gray-700 flex flex-col overflow-hidden shadow-2xl"
       >
-        <CommunePanel selectedId={selectedCommune} onSelect={setSelectedCommune} />
+        {/* El onClose pasa el botón X al header del panel */}
+        <CommunePanel
+          selectedId={selectedCommune}
+          onSelect={setSelectedCommune}
+          onClose={() => setSidebarOpen(false)}
+        />
       </aside>
 
-      {/* Leyenda y fuentes */}
-      <div style={{ zIndex: 400 }}>
-        <Legend />
-        <SourcesFooter />
-      </div>
+      {/* Fuentes */}
+      <SourcesFooter />
     </div>
   );
 }

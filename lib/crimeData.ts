@@ -12,13 +12,14 @@ export interface CommuneStats {
   id: string;
   name: string;
   center: [number, number];
-  crimeIndex: number;       // 0-100 compuesto basado en datos 2025
+  crimeIndex: number;
   portonazos2024: number;
   portonazos2025: number;
+  portonazos2026est: number; // estimado: Q1 2026 nacional -18,3%, ajustado por tendencia local
   encerronas2024: number;
   trend: 'baja' | 'sube' | 'estable';
-  trendPct: number;         // % cambio 2024→2025
-  trend2026: 'baja' | 'sube' | 'estable'; // tendencia Q1 2026
+  trendPct: number;
+  trend2026: 'baja' | 'sube' | 'estable';
   hotspots: string[];
   notes: string;
   color: string;
@@ -80,6 +81,7 @@ export const communeStats: CommuneStats[] = [
     crimeIndex: 72,
     portonazos2024: 96,
     portonazos2025: 107,
+    portonazos2026est: 118, // +10% proyectado (sigue subiendo, Tren de Aragua activo)
     encerronas2024: 4,
     trend: 'sube',
     trendPct: +12,
@@ -100,6 +102,7 @@ export const communeStats: CommuneStats[] = [
     crimeIndex: 65,
     portonazos2024: 243,
     portonazos2025: 130,
+    portonazos2026est: 107, // -18% proyectado (continúa bajando con FEI activo)
     encerronas2024: 12,
     trend: 'baja',
     trendPct: -47,
@@ -121,6 +124,7 @@ export const communeStats: CommuneStats[] = [
     crimeIndex: 62,
     portonazos2024: 68,
     portonazos2025: 88,
+    portonazos2026est: 101, // +15% proyectado (efecto globo sostenido)
     encerronas2024: 2,
     trend: 'sube',
     trendPct: +29,
@@ -142,6 +146,7 @@ export const communeStats: CommuneStats[] = [
     crimeIndex: 25,
     portonazos2024: 63,
     portonazos2025: 26,
+    portonazos2026est: 21, // -18% proyectado (tendencia descendente consolidada)
     encerronas2024: 3,
     trend: 'baja',
     trendPct: -59,
@@ -162,6 +167,7 @@ export const communeStats: CommuneStats[] = [
     crimeIndex: 55,
     portonazos2024: 18,
     portonazos2025: 14,
+    portonazos2026est: 11, // -18% proyectado (sin datos comunales oficiales)
     encerronas2024: 0,
     trend: 'baja',
     trendPct: -22,
