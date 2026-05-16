@@ -22,6 +22,14 @@ function CrimeBar({ value, max }: { value: number; max: number }) {
   );
 }
 
+function TrendBadge({ trend, pct }: { trend: 'sube' | 'baja' | 'estable'; pct: number }) {
+  return (
+    <span className={`text-xs font-bold ${trend === 'sube' ? 'text-red-400' : 'text-green-400'}`}>
+      {trend === 'sube' ? '↑' : '↓'} {Math.abs(pct)}%
+    </span>
+  );
+}
+
 export default function CommunePanel({ selectedId, onSelect }: Props) {
   const selected = communeStats.find(c => c.id === selectedId);
   const maxPortonazos = Math.max(...communeStats.map(c => c.portonazos2024));
@@ -32,6 +40,10 @@ export default function CommunePanel({ selectedId, onSelect }: Props) {
       <div className="px-4 pt-4 pb-3 border-b border-gray-800">
         <h1 className="text-base font-bold text-white tracking-tight">Mapa de Calor</h1>
         <p className="text-xs text-gray-400 mt-0.5">Portonazos &amp; Encerronas · Región Metropolitana</p>
+        <div className="mt-2 flex items-center gap-1.5 bg-blue-950/60 border border-blue-800/50 rounded-md px-2 py-1">
+          <span className="text-blue-400 text-xs">●</span>
+          <span className="text-xs text-blue-300">Actualizado con datos 2026</span>
+        </div>
       </div>
 
       {/* Commune list */}
@@ -51,23 +63,17 @@ export default function CommunePanel({ selectedId, onSelect }: Props) {
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
-                  <span
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ background: c.color }}
-                  />
+                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: c.color }} />
                   <span className="text-sm font-semibold text-gray-100">{c.name}</span>
                 </div>
-                <span
-                  className={`text-xs font-bold flex items-center gap-0.5 ${
-                    c.trend === 'sube' ? 'text-red-400' : 'text-green-400'
-                  }`}
-                >
-                  {c.trend === 'sube' ? '↑' : '↓'} {Math.abs(c.trendPct)}%
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <TrendBadge trend={c.trend} pct={c.trendPct} />
+                  <span className="text-gray-600 text-xs">24→25</span>
+                </div>
               </div>
-              <CrimeBar value={c.portonazos2024} max={maxPortonazos} />
-              <div className="flex justify-between mt-1.5 text-xs text-gray-400">
-                <span>{c.portonazos2024} portonazos 2024</span>
+              <CrimeBar value={c.portonazos2025} max={maxPortonazos} />
+              <div className="flex justify-between mt-1.5 text-xs text-gray-500">
+                <span>{c.portonazos2024} en 2024</span>
                 <span className={c.trend === 'sube' ? 'text-red-400' : 'text-green-400'}>
                   {c.portonazos2025} en 2025
                 </span>
@@ -78,7 +84,7 @@ export default function CommunePanel({ selectedId, onSelect }: Props) {
 
       {/* Selected commune detail */}
       {selected && (
-        <div className="border-t border-gray-800 px-3 py-3 space-y-3 max-h-72 overflow-y-auto">
+        <div className="border-t border-gray-800 px-3 py-3 space-y-3 max-h-80 overflow-y-auto">
           <div className="flex items-center justify-between">
             <span className="text-sm font-bold text-white">{selected.name}</span>
             <button onClick={() => onSelect(null)} className="text-gray-500 hover:text-gray-300 text-xs">
@@ -86,12 +92,26 @@ export default function CommunePanel({ selectedId, onSelect }: Props) {
             </button>
           </div>
 
+          {/* Stats grid */}
           <div className="grid grid-cols-3 gap-1.5">
-            <Stat label="Portonazos 2024" value={selected.portonazos2024} color="text-orange-400" />
-            <Stat label="Portonazos 2025" value={selected.portonazos2025} color={selected.trend === 'sube' ? 'text-red-400' : 'text-green-400'} />
-            <Stat label="Encerronas 2024" value={selected.encerronas2024} color="text-yellow-400" />
+            <Stat label="2024" value={selected.portonazos2024} color="text-gray-300" />
+            <Stat label="2025" value={selected.portonazos2025} color={selected.trend === 'sube' ? 'text-red-400' : 'text-green-400'} />
+            <Stat label="Encerronas" value={selected.encerronas2024} color="text-yellow-400" />
           </div>
 
+          {/* 2026 trend */}
+          <div className={`rounded-lg px-3 py-2 text-xs border ${
+            selected.trend2026 === 'sube'
+              ? 'bg-red-950/40 border-red-800/50 text-red-300'
+              : 'bg-green-950/40 border-green-800/50 text-green-300'
+          }`}>
+            <span className="font-semibold">Tendencia 2026: </span>
+            {selected.trend2026 === 'sube'
+              ? 'En alza · Q1 2026 sigue aumentando'
+              : 'A la baja · Q1 2026 continúa descendiendo'}
+          </div>
+
+          {/* Hotspots */}
           <div>
             <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1.5">Zonas de riesgo</p>
             <ul className="space-y-1">
@@ -104,6 +124,7 @@ export default function CommunePanel({ selectedId, onSelect }: Props) {
             </ul>
           </div>
 
+          {/* Context */}
           <div>
             <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">Contexto</p>
             <p className="text-xs text-gray-400 leading-relaxed">{selected.notes}</p>
@@ -113,21 +134,36 @@ export default function CommunePanel({ selectedId, onSelect }: Props) {
 
       {/* RM Stats footer */}
       {!selected && (
-        <div className="border-t border-gray-800 px-3 py-3">
-          <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-2">RM · Datos PDI 2024</p>
+        <div className="border-t border-gray-800 px-3 py-3 space-y-2">
+          <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">RM · 2025-2026</p>
           <div className="space-y-1.5 text-xs text-gray-400">
+            <div className="flex justify-between">
+              <span>Robos vehículos 2025</span>
+              <span className="text-green-400">↓ 28% vs 2024</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Q1 2026 (nacional)</span>
+              <span className="text-green-400">↓ 18,3% vs Q1 2025</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Encerronas RM 2025</span>
+              <span className="text-green-400">359 (↓27%)</span>
+            </div>
             <div className="flex justify-between">
               <span>Horario pico</span>
               <span className="text-gray-200">{rmStats.peakHours}</span>
             </div>
             <div className="flex justify-between">
-              <span>Días más frecuentes</span>
-              <span className="text-gray-200">{rmStats.peakDays}</span>
+              <span>Edad imputados</span>
+              <span className="text-gray-200">46% de 15-18 años</span>
             </div>
             <div className="flex justify-between">
-              <span>Edad imputados</span>
-              <span className="text-gray-200">{rmStats.perpetratorAge}</span>
+              <span>Uso armas de fuego</span>
+              <span className="text-orange-400">{rmStats.weaponUse}</span>
             </div>
+          </div>
+          <div className="bg-amber-950/40 border border-amber-800/40 rounded-md px-2 py-1.5 text-xs text-amber-300">
+            ⚠️ Efecto globo 2026: delitos se desplazan a Quilicura, Conchalí y Renca
           </div>
         </div>
       )}
