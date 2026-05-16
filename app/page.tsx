@@ -24,82 +24,85 @@ export default function Home() {
   const [crimeType, setCrimeType] = useState<CrimeType>('todos');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('todos');
   const [selectedCommune, setSelectedCommune] = useState<string | null>(null);
-  // Empieza cerrado; se abre solo en desktop tras mount
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Abre por defecto en desktop
   useEffect(() => {
     if (window.innerWidth >= 768) setSidebarOpen(true);
   }, []);
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
   return (
-    <div className="flex w-screen overflow-hidden bg-gray-950" style={{ height: '100dvh' }}>
+    // El mapa siempre ocupa toda la pantalla
+    <div className="fixed inset-0 bg-gray-950">
 
-      {/* Backdrop mobile — cierra el sidebar al tocar fuera */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-20 bg-black/60 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Mapa: full screen siempre */}
+      <CrimeHeatMap
+        crimeType={crimeType}
+        timeFilter={timeFilter}
+        selectedCommune={selectedCommune}
+        onSelectCommune={setSelectedCommune}
+      />
 
-      {/* Sidebar:
-          - Mobile: overlay fijo desde la izquierda (z-30)
-          - Desktop: panel en el flujo que colapsa con width 0
-      */}
-      <aside
-        className={`
-          fixed md:relative inset-y-0 left-0
-          flex-shrink-0 bg-gray-900 border-r border-gray-800
-          flex flex-col overflow-hidden
-          transition-all duration-300 ease-in-out
-          ${sidebarOpen
-            ? 'w-[280px] translate-x-0 z-30'
-            : 'w-[280px] -translate-x-full z-30 md:w-0 md:translate-x-0 md:border-r-0'
-          }
-        `}
-        style={{ height: '100dvh' }}
-      >
-        <CommunePanel selectedId={selectedCommune} onSelect={setSelectedCommune} />
-      </aside>
-
-      {/* Mapa — ocupa todo el espacio restante */}
-      <main className="relative flex-1 overflow-hidden min-w-0">
-        <CrimeHeatMap
-          crimeType={crimeType}
-          timeFilter={timeFilter}
-          selectedCommune={selectedCommune}
-          onSelectCommune={setSelectedCommune}
-        />
-
+      {/* Filtros centrados arriba */}
+      <div className="absolute inset-x-0 top-0 pointer-events-none" style={{ zIndex: 400 }}>
         <FilterBar
           crimeType={crimeType}
           timeFilter={timeFilter}
           onCrimeType={setCrimeType}
           onTimeFilter={setTimeFilter}
         />
+      </div>
 
-        {/* Botón toggle — siempre encima de todo */}
-        <button
-          onClick={() => setSidebarOpen(o => !o)}
-          className="absolute top-4 left-4 z-[9999] bg-gray-900/90 backdrop-blur-sm border border-gray-700 rounded-lg p-2.5 text-gray-400 hover:text-white hover:border-gray-500 transition-all shadow-xl"
-          title={sidebarOpen ? 'Ocultar resumen' : 'Mostrar resumen'}
-        >
-          {sidebarOpen && !isMobile ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          )}
-        </button>
+      {/* Botón toggle — siempre visible, esquina superior izquierda */}
+      <button
+        onClick={() => setSidebarOpen(o => !o)}
+        style={{ zIndex: 1000 }}
+        className="absolute top-4 left-4 bg-gray-900 border border-gray-600 rounded-lg p-2.5 text-gray-300 hover:text-white hover:border-gray-400 transition-all shadow-xl"
+        aria-label={sidebarOpen ? 'Ocultar resumen' : 'Mostrar resumen'}
+      >
+        {sidebarOpen ? (
+          // X para cerrar
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : (
+          // Hamburger para abrir
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        )}
+      </button>
 
+      {/* Backdrop: aparece detrás del sidebar al abrirse */}
+      {sidebarOpen && (
+        <div
+          className="absolute inset-0 bg-black/50 md:hidden"
+          style={{ zIndex: 800 }}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar: overlay fijo desde la izquierda */}
+      <aside
+        style={{
+          zIndex: 900,
+          width: 280,
+          top: 0,
+          left: 0,
+          bottom: 0,
+          transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 300ms ease-in-out',
+        }}
+        className="absolute bg-gray-900 border-r border-gray-700 flex flex-col overflow-hidden shadow-2xl"
+      >
+        <CommunePanel selectedId={selectedCommune} onSelect={setSelectedCommune} />
+      </aside>
+
+      {/* Leyenda y fuentes */}
+      <div style={{ zIndex: 400 }}>
         <Legend />
         <SourcesFooter />
-      </main>
+      </div>
     </div>
   );
 }
